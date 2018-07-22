@@ -27,12 +27,10 @@ class App extends Component {
     const requri = `https://api.github.com/users/${username}`;
     const repouri = `https://api.github.com/users/${username}/repos`;
 
-    axios.get(requri).then(res => console.log(res));
-    // requestJSON(requri, function(res) {
-    //   if (res.message == "Not Found" || username == "") {
-    //   }
-    // });
-    console.log("click");
+    axios.get(requri).then(res => {
+      if (res.message == "Not Found" || username == "") {
+      }
+    });
   }
 
   render() {
