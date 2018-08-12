@@ -13,10 +13,10 @@ const SummaryInfo = ({
   return (
     <div>
       <h2>
-        {this.state.fullname}{" "}
+        {fullname}
         <span className="smallname">
-          (@<a href={this.state.profileurl} target="_blank">
-            {this.state.username}
+          (@<a href={profileurl} target="_blank">
+            {username}
           </a>)
         </span>
       </h2>
