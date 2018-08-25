@@ -13,7 +13,6 @@ const SummaryInfo = ({
   website
 }) => {
   return (
-    <div class = "profile-info">
     <div className = "row">
            <h2>
           {fullname}
@@ -39,14 +38,6 @@ const SummaryInfo = ({
           <li className="list-group-item">Repos: {reposnum}</li>
         </ul>
       </div>
-    </div>
-
-    <div className = "row">
-      <div className = "col-xs-12">
-        {fullname}'s activity 
-        <img src="http://ghchart.rshah.org/${username}" alt =""/>
-      </div>
-    </div>
     </div>
   );
 

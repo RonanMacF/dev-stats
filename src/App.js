@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import SummaryInfo from "./components/SummaryInfo";
+import Calendar from "./components/Calendar";
+
 import axios from "axios";
 
 import "./App.css";
@@ -65,7 +67,7 @@ class App extends Component {
 
   render() {
     let summaryStats = "";
-
+    let calendar = "";
     if (this.state.displayValue) {
       console.log(this.state);
       summaryStats = (
@@ -82,10 +84,12 @@ class App extends Component {
           website={this.state.website}
         />
       );
-
-
-    } else {
-      summaryStats = "";
+      calendar = (
+        <Calendar
+          username={this.state.username}
+          fullname={this.state.fullname}
+        />
+      );
     }
 
     return (
@@ -95,29 +99,46 @@ class App extends Component {
           <div className="row">
             <div className="col-md-8 offset-md-2">
               <h1 className="text-center">GitHub User Analysis</h1>
-              <p>This Project displays data on a searched GitHub user. When a user is searched it will display basic information below such as name, location, country, website and repos. Each repository is further analysed below using D3 showing which languages is repo is composed of.</p>
+              <p>
+                This Project displays data on a searched GitHub user. When a
+                user is searched it will display basic information below such as
+                name, location, country, website and repos. Each repository is
+                further analysed below using D3 showing which languages is repo
+                is composed of.
+              </p>
 
-              <p>Technologies used: JavaScript (React), Axios, JSON, HTML, CSS, GitHub API and D3.js.</p>
-              <p>To begin enter a single Github username below to get information about the given user.</p>
+              <p>
+                Technologies used: JavaScript (React), Axios, JSON, HTML, CSS,
+                GitHub API and D3.js.
+              </p>
+              <p>
+                To begin enter a single Github username below to get information
+                about the given user.
+              </p>
 
               <div className="input-group">
-                <input type="text" className="form-control" name="buttonValue"
+                <input
+                  type="text"
+                  className="form-control"
+                  name="buttonValue"
                   id="ghusername"
                   value={this.state.buttonValue}
                   onChange={this.onChange}
-                  placeholder="Github username..."/>
-                  <div className="input-group-append">
-                    <button
-                      href="#"
-                      id="ghsubmitbtn"
-                      className="btn btn-primary btn-search"
-                      onClick={this.onSearchClick}
-                      >
-                      Pull User Data
-                    </button>
-                  </div>
+                  placeholder="Github username..."
+                />
+                <div className="input-group-append">
+                  <button
+                    href="#"
+                    id="ghsubmitbtn"
+                    className="btn btn-primary btn-search"
+                    onClick={this.onSearchClick}
+                  >
+                    Pull User Data
+                  </button>
+                </div>
               </div>
               {summaryStats}
+              {calendar}
             </div>
           </div>
         </div>
