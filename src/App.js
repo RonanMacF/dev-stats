@@ -19,7 +19,10 @@ class App extends Component {
       followingnum: "",
       reposnum: "",
       buttonValue: "",
-      displayValue: false
+      company: "",
+      website: "",
+      displayValue: false,
+      repos: []
     };
 
     this.onChange = this.onChange.bind(this);
@@ -50,12 +53,19 @@ class App extends Component {
         this.setState({ followingnum: res.data.following });
         this.setState({ reposnum: res.data.public_repos });
         this.setState({ displayValue: true });
+        this.setState({ company: res.data.company });
+        this.setState({ website: res.data.blog });
       }
+    });
+
+    axios.get(repouri).then(res => {
+      this.setState({ repos: res.data });
     });
   }
 
   render() {
     let summaryStats = "";
+
     if (this.state.displayValue) {
       console.log(this.state);
       summaryStats = (
@@ -68,8 +78,12 @@ class App extends Component {
           followersnum={this.state.followersnum}
           followingnum={this.state.followingnum}
           reposnum={this.state.reposnum}
+          company={this.state.company}
+          website={this.state.website}
         />
       );
+
+
     } else {
       summaryStats = "";
     }
@@ -79,36 +93,34 @@ class App extends Component {
         <Navbar />
         <div className="container">
           <div className="row">
-            <div className="col-md-3" />
-            <div className="col-md-6">
-              <h1 className="text-center">middle</h1>
-              <p>
-                Enter a single Github username below to get information about
-                the user.
-              </p>
+            <div className="col-md-8 offset-md-2">
+              <h1 className="text-center">GitHub User Analysis</h1>
+              <p>This Project displays data on a searched GitHub user. When a user is searched it will display basic information below such as name, location, country, website and repos. Each repository is further analysed below using D3 showing which languages is repo is composed of.</p>
 
-              <input
-                type="text"
-                name="buttonValue"
-                id="ghusername"
-                value={this.state.buttonValue}
-                onChange={this.onChange}
-                placeholder="Github username..."
-              />
+              <p>Technologies used: JavaScript (React), Axios, JSON, HTML, CSS, GitHub API and D3.js.</p>
+              <p>To begin enter a single Github username below to get information about the given user.</p>
 
-              <button
-                href="#"
-                id="ghsubmitbtn"
-                className="btn btn-primary"
-                onClick={this.onSearchClick}
-              >
-                Pull User Data
-              </button>
-              <div className="col-md-3" />
+              <div className="input-group">
+                <input type="text" className="form-control" name="buttonValue"
+                  id="ghusername"
+                  value={this.state.buttonValue}
+                  onChange={this.onChange}
+                  placeholder="Github username..."/>
+                  <div className="input-group-append">
+                    <button
+                      href="#"
+                      id="ghsubmitbtn"
+                      className="btn btn-primary btn-search"
+                      onClick={this.onSearchClick}
+                      >
+                      Pull User Data
+                    </button>
+                  </div>
+              </div>
+              {summaryStats}
             </div>
           </div>
         </div>
-        {summaryStats}
         <Footer />
       </div>
     );

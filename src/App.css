@@ -6,3 +6,8 @@
 .App .container {
   flex: 1 0 auto;
 }
+
+.profile-pic{
+  max-width:100%;
+max-height:100%;
+}
