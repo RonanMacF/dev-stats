@@ -7,7 +7,26 @@
   flex: 1 0 auto;
 }
 
-.profile-pic{
-  max-width:100%;
-max-height:100%;
+.profile-pic {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.bar-chart {
+  background-color: #c7d9d9;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.list-group-item {
+  padding: 0.3rem 1.25rem;
 }

@@ -3,6 +3,8 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import SummaryInfo from "./components/SummaryInfo";
 import Calendar from "./components/Calendar";
+import * as d3 from "./d3.min";
+import RepoList from "./components/RepoList";
 
 import axios from "axios";
 
@@ -29,20 +31,295 @@ class App extends Component {
 
     this.onChange = this.onChange.bind(this);
     this.onSearchClick = this.onSearchClick.bind(this);
+    this.onRepoClick = this.onRepoClick.bind(this);
   }
 
   onChange(e) {
     this.setState({ [e.target.name]: e.target.value });
   }
 
+  onRepoClick(e) {
+    let repo = e.target.outerText;
+    axios
+      .get(
+        `https://api.github.com/repos/${this.state.username}/${repo}/languages`
+      )
+      .then(res => {
+        var data = res.data;
+        var dataset = [];
+
+        // loop through data object and append items to li
+        for (var key in data) {
+          if (data.hasOwnProperty(key)) {
+            // ensure it is key from data, not prototype being used
+
+            // code to display language counts as list - not used at moment
+            // $("#langDetails").append("<li>" + key + ": " + data[key] + "</li>");
+
+            // push items into dataset array
+            var item = {};
+            item.key = key;
+            item.value = data[key];
+            dataset.push(item);
+          }
+        }
+
+        var margin = { top: 70, right: 20, bottom: 60, left: 100 };
+        var w = 600 - margin.left - margin.right;
+        var h = 500 - margin.top - margin.bottom;
+        var svg = d3.select("div#chart");
+
+        // define the x scale
+        var xScale = d3.scale
+          .ordinal()
+          .domain(
+            dataset.map(function(d) {
+              return d.key;
+            })
+          )
+          .rangeRoundBands([margin.left, w], 0.05);
+
+        // define the x axis
+        var xAxis = d3.svg
+          .axis()
+          .scale(xScale)
+          .orient("bottom");
+
+        // define the y scale
+        var yScale = d3.scale
+          .linear()
+          .domain([
+            0,
+            d3.max(dataset, function(d) {
+              return d.value;
+            })
+          ])
+          .range([h, margin.top]);
+
+        // define the y axis
+        var yAxis = d3.svg
+          .axis()
+          .scale(yScale)
+          .orient("left");
+
+        xScale
+          .domain(
+            dataset.map(function(d) {
+              return d.key;
+            })
+          )
+          .rangeRoundBands([margin.left, w], 0.05);
+
+        // update the y scale
+        yScale
+          .domain([
+            0,
+            d3.max(dataset, function(d) {
+              return d.value;
+            })
+          ])
+          .range([h, margin.top]);
+
+        // update the x axis
+        xAxis.scale(xScale).orient("bottom");
+
+        // update the y axis
+        yAxis.scale(yScale).orient("left");
+
+        //Create bars and labels
+        var bars = svg.selectAll("rect").data(Object.values(dataset));
+
+        // add new bars
+        bars
+          .enter()
+          .append("rect")
+          .attr("x", function(d, i) {
+            return xScale(d.key);
+          })
+          .attr("y", function(d) {
+            return yScale(d.value);
+          })
+          .attr("width", xScale.rangeBand())
+          .attr("height", function(d) {
+            return h - yScale(d.value);
+          })
+          .attr("fill", "steelblue");
+
+        //remove bars as necessary
+        bars
+          .exit()
+          .transition()
+          .duration(500)
+          .attr("x", w)
+          .remove();
+
+        // update the bars
+        bars
+          .transition()
+          .duration(750)
+          .attr("x", function(d, i) {
+            return xScale(d.key);
+          })
+          .attr("y", function(d) {
+            return yScale(d.value);
+          })
+          .attr("width", xScale.rangeBand())
+          .attr("height", function(d) {
+            return h - yScale(d.value);
+          });
+
+        // update the x axis
+        svg
+          .select(".xaxis")
+          .transition()
+          .duration(750)
+          .call(xAxis);
+
+        // update the y axis
+        svg
+          .select(".yaxis")
+          .transition()
+          .duration(750)
+          .call(yAxis);
+
+        // update the title
+        svg.select(".chartTitle").text(repo);
+
+        // add tooltip
+        bars
+          .on("mouseover", function(d) {
+            // add blank tooltip
+            svg.append("text").attr("id", "tooltip");
+
+            // get the x and y coords
+            var xPosition =
+              parseFloat(d3.select(this).attr("x")) + xScale.rangeBand() / 2;
+            var yPosition = parseFloat(d3.select(this).attr("y")) + 18;
+
+            // add the tooltip
+            svg
+              .select("#tooltip")
+              .attr("x", xPosition)
+              .attr("y", function() {
+                // if value is less than 10% of max, show tooltip above bar
+                var mx = d3.max(dataset, function(d) {
+                  return d.value;
+                });
+                if (d.value < 0.1 * mx) {
+                  return yPosition - 22;
+                } else {
+                  return yPosition;
+                }
+              })
+              .attr("text-anchor", "middle")
+              .attr("fill", function() {
+                // if value is less than 10% of max, make tooltip black
+                var mx = d3.max(dataset, function(d) {
+                  return d.value;
+                });
+                if (d.value < 0.1 * mx) {
+                  return "black";
+                } else {
+                  return "white";
+                }
+              })
+              .attr("font-family", "sans-serif")
+              .attr("font-size", "12px")
+              .text(d.value);
+          })
+          .on("mouseout", function() {
+            d3.select("#tooltip").remove();
+          });
+      });
+  }
+
+  initaliseGraph() {
+    // setup for the d3 chart
+    // basic SVG setup
+    var dataset = [];
+    var margin = { top: 70, right: 20, bottom: 60, left: 100 };
+    var w = 600 - margin.left - margin.right;
+    var h = 500 - margin.top - margin.bottom;
+
+    //Create SVG element
+    var svg = d3
+      .select("div#chart")
+      .append("svg")
+      .attr("width", w + margin.left + margin.right)
+      .attr("height", h + margin.top + margin.bottom);
+
+    // define the x scale
+    var xScale = d3.scale
+      .ordinal()
+      .domain(Object.keys(dataset))
+      .rangeRoundBands([margin.left, w], 0.05);
+
+    // define the x axis
+    var xAxis = d3.svg
+      .axis()
+      .scale(xScale)
+      .orient("bottom");
+
+    // define the y scale
+    var yScale = d3.scale
+      .linear()
+      .domain([0, d3.max(Object.values(dataset))])
+      .range([h, margin.top]);
+
+    // define the y axis
+    var yAxis = d3.svg
+      .axis()
+      .scale(yScale)
+      .orient("left");
+
+    // draw the x axis
+    svg
+      .append("g")
+      .attr("class", "xaxis")
+      .attr("transform", "translate(0," + h + ")")
+      .call(xAxis);
+
+    // draw the y axis
+    svg
+      .append("g")
+      .attr("class", "yaxis")
+      .attr("transform", "translate(" + margin.left + ",0)")
+      .call(yAxis);
+
+    // add the x axis label
+    svg
+      .append("text")
+      .attr("class", "x axis label")
+      .attr("text-anchor", "middle")
+      .attr(
+        "transform",
+        "translate(" + w / 2 + "," + (h + margin.bottom / 2 + 10) + ")"
+      )
+      .text("Language");
+
+    // add the y axis label
+    svg
+      .append("text")
+      .attr("class", "y axis label")
+      .attr("text-anchor", "middle")
+      .attr("transform", "translate(15," + h / 2 + ")rotate(-90)")
+      .text("Number of characters");
+
+    // add a title to the chart
+    svg
+      .append("text")
+      .attr("class", "chartTitle")
+      .attr("text-anchor", "middle")
+      .attr("transform", "translate(" + w / 2 + ",20)")
+      .text("GitHub Repo");
+  }
+
   onSearchClick(e) {
     e.preventDefault();
-    console.log("clicked");
     let username = this.state.buttonValue;
     const requri = `https://api.github.com/users/${username}`;
     const repouri = `https://api.github.com/users/${username}/repos`;
 
-    console.log(requri);
     axios.get(requri).then(res => {
       if (res.message === "Not Found" || username === "") {
       } else {
@@ -54,22 +331,23 @@ class App extends Component {
         this.setState({ followersnum: res.data.followers });
         this.setState({ followingnum: res.data.following });
         this.setState({ reposnum: res.data.public_repos });
-        this.setState({ displayValue: true });
         this.setState({ company: res.data.company });
         this.setState({ website: res.data.blog });
       }
     });
-
     axios.get(repouri).then(res => {
-      this.setState({ repos: res.data });
+      res.data.map(repo => this.state.repos.push(repo.name));
+      this.setState({ displayValue: true });
+      this.initaliseGraph();
     });
   }
 
   render() {
     let summaryStats = "";
     let calendar = "";
+    let repoGraphData = "";
+
     if (this.state.displayValue) {
-      console.log(this.state);
       summaryStats = (
         <SummaryInfo
           fullname={this.state.fullname}
@@ -89,6 +367,10 @@ class App extends Component {
           username={this.state.username}
           fullname={this.state.fullname}
         />
+      );
+
+      repoGraphData = (
+        <RepoList repos={this.state.repos} onClick={this.onRepoClick} />
       );
     }
 
@@ -141,6 +423,11 @@ class App extends Component {
               {calendar}
             </div>
           </div>
+          <div className="row">
+            <div className="col-xs-3">{repoGraphData}</div>
+          </div>
+
+          <div id="chart" />
         </div>
         <Footer />
       </div>
