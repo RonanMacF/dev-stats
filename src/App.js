@@ -26,7 +26,8 @@ class App extends Component {
       company: "",
       website: "",
       displayValue: false,
-      repos: []
+      repos: [],
+      graphInitialised: false
     };
 
     this.onChange = this.onChange.bind(this);
@@ -67,7 +68,7 @@ class App extends Component {
         var margin = { top: 70, right: 20, bottom: 60, left: 100 };
         var w = 600 - margin.left - margin.right;
         var h = 500 - margin.top - margin.bottom;
-        var svg = d3.select("div#chart");
+        var svg = d3.select("div#chart").select("svg");
 
         // define the x scale
         var xScale = d3.scale
@@ -126,6 +127,7 @@ class App extends Component {
         // update the y axis
         yAxis.scale(yScale).orient("left");
 
+        console.log(Object.values(dataset), "bar");
         //Create bars and labels
         var bars = svg.selectAll("rect").data(Object.values(dataset));
 
@@ -133,6 +135,7 @@ class App extends Component {
         bars
           .enter()
           .append("rect")
+          .classed("test", true)
           .attr("x", function(d, i) {
             return xScale(d.key);
           })
@@ -241,6 +244,7 @@ class App extends Component {
     var w = 600 - margin.left - margin.right;
     var h = 500 - margin.top - margin.bottom;
 
+    d3.select("svg").remove();
     //Create SVG element
     var svg = d3
       .select("div#chart")
@@ -333,20 +337,26 @@ class App extends Component {
         this.setState({ reposnum: res.data.public_repos });
         this.setState({ company: res.data.company });
         this.setState({ website: res.data.blog });
+        this.setState({ repos: [] });
       }
     });
+
     axios.get(repouri).then(res => {
       res.data.map(repo => this.state.repos.push(repo.name));
       this.setState({ displayValue: true });
       this.initaliseGraph();
     });
+
+    if (!this.state.graphInitialised) {
+      this.setState({ graphInitialised: true });
+    }
   }
 
   render() {
     let summaryStats = "";
     let calendar = "";
     let repoGraphData = "";
-
+    let chart = "";
     if (this.state.displayValue) {
       summaryStats = (
         <SummaryInfo
@@ -369,8 +379,12 @@ class App extends Component {
         />
       );
 
+      chart = <div id="chart" />;
       repoGraphData = (
-        <RepoList repos={this.state.repos} onClick={this.onRepoClick} />
+        <div>
+          <h3>Respository Breakdown</h3>
+          <RepoList repos={this.state.repos} onClick={this.onRepoClick} />
+        </div>
       );
     }
 
@@ -423,11 +437,14 @@ class App extends Component {
               {calendar}
             </div>
           </div>
-          <div className="row">
-            <div className="col-xs-3">{repoGraphData}</div>
+          <div className="row content-row">
+            <div className="col-xs-12 col-md-4 offset-md-2">
+              {repoGraphData}
+            </div>
+            <div className="col-xs-12 col-md-4">
+              <div id="chart" />
+            </div>
           </div>
-
-          <div id="chart" />
         </div>
         <Footer />
       </div>
