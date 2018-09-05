@@ -10,6 +10,9 @@ import axios from "axios";
 
 import "./App.css";
 
+const CLIENT_ID = "65c233d19a65c0ab5a57";
+const REDIRECT_URI = "http://localhost:3000/";
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -27,12 +30,37 @@ class App extends Component {
       website: "",
       displayValue: false,
       repos: [],
-      graphInitialised: false
+      graphInitialised: false,
+      status: "initial",
+      token: null
     };
 
     this.onChange = this.onChange.bind(this);
     this.onSearchClick = this.onSearchClick.bind(this);
     this.onRepoClick = this.onRepoClick.bind(this);
+  }
+
+  componentDidMount() {
+    const code = window.location.href.split("=")[1];
+    console.log("code =", code);
+    if (code) {
+      this.setState({ status: "loading" });
+      fetch(`https://dev-stats-ronan.herokuapp.com/authenticate/${code}`)
+        .then(response => response.json())
+        .then(({ token }) => {
+          this.setState({
+            token,
+            status: "finished"
+          });
+
+          axios
+            .get(`https://api.github.com/user?access_token=${token}`)
+            .then(res => {
+              this.setState({ buttonValue: res.data.login });
+              this.onSearchClick();
+            });
+        });
+    }
   }
 
   onChange(e) {
@@ -319,7 +347,6 @@ class App extends Component {
   }
 
   onSearchClick(e) {
-    e.preventDefault();
     let username = this.state.buttonValue;
     const requri = `https://api.github.com/users/${username}`;
     const repouri = `https://api.github.com/users/${username}/repos`;
@@ -356,7 +383,6 @@ class App extends Component {
     let summaryStats = "";
     let calendar = "";
     let repoGraphData = "";
-    let chart = "";
     if (this.state.displayValue) {
       summaryStats = (
         <SummaryInfo
@@ -379,7 +405,6 @@ class App extends Component {
         />
       );
 
-      chart = <div id="chart" />;
       repoGraphData = (
         <div>
           <h3>Respository Breakdown</h3>
@@ -424,7 +449,6 @@ class App extends Component {
                 />
                 <div className="input-group-append">
                   <button
-                    href="#"
                     id="ghsubmitbtn"
                     className="btn btn-primary btn-search"
                     onClick={this.onSearchClick}
@@ -432,6 +456,19 @@ class App extends Component {
                     Pull User Data
                   </button>
                 </div>
+
+                <button
+                  id="ghsloginbtn"
+                  className="btn btn-danger btn-search"
+                  onClick={this.loginUser}
+                >
+                  {" "}
+                  <a
+                    href={`https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=user&redirect_uri=${REDIRECT_URI}`}
+                  >
+                    Login to Githhub
+                  </a>
+                </button>
               </div>
               {summaryStats}
               {calendar}
