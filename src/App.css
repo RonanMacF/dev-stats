@@ -38,3 +38,9 @@
 .content-row {
   margin-top: 40px;
 }
+
+.github-link,
+.github-link:hover {
+  text-decoration: none;
+  color: white;
+}

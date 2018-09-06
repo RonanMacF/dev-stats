@@ -462,9 +462,9 @@ class App extends Component {
                   className="btn btn-danger btn-search"
                   onClick={this.loginUser}
                 >
-                  {" "}
                   <a
                     href={`https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&scope=user&redirect_uri=${REDIRECT_URI}`}
+                    className="github-link"
                   >
                     Login to Githhub
                   </a>
